@@ -16,6 +16,15 @@ function daidalusBandViz(simObject)
     % Turn off autocomplete for legends -- an annoying feature of Matlab 2018
     set(0, 'DefaultLegendAutoUpdate', 'off');
 
+    logicLabel = 'DAIDALUS';
+    try
+        logicImpl = which('DaidalusV201');
+        if contains(logicImpl, '/degas-acas/')
+            logicLabel = 'ACAS-Xu';
+        end
+    catch
+    end
+
     sr1 = simObject.results(1);
     sr2 = simObject.results(2);
     srn = simObject.results_nominal(1);
@@ -102,7 +111,7 @@ function daidalusBandViz(simObject)
     pbaspect([1 1 1])
     xlabel('Heading (deg)')
     ylabel('Time (s)')
-    title('DAIDALUS Horizontal Guidance')
+    title([logicLabel ' Horizontal Guidance'])
     
     % Vertical guidance
     
@@ -170,7 +179,7 @@ function daidalusBandViz(simObject)
     pbaspect([1 1 1]);
     xlabel('Time (s)');
     ylabel('Altitude (ft.)');
-    title('DAIDALUS Vertical Guidance');
+    title([logicLabel ' Vertical Guidance']);
     grid on;
     grid minor;
     

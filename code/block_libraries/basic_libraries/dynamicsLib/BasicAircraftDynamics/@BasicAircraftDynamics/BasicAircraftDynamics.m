@@ -24,7 +24,7 @@ classdef (Sealed = true) BasicAircraftDynamics < Block
     end % end properties        
 
     properties % dynamics constraints properties
-        con @ dynamicsConstraints
+        con
     end  
 
     % Aliases for initial conditions with readable names    

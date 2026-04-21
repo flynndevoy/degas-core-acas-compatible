@@ -6,8 +6,6 @@
 % Set daaBackend to either 'daidalus' or 'acas'.
 
 % -------------------- User settings --------------------
-daaBackend = 'daidalus'; % 'daidalus' | 'acas'
-encNum = 8;
 
 pathAcas  = '/home/flynn/projects/matlab2018/degas-acas/SimulinkInterface';
 pathDaid  = '/home/flynn/projects/matlab2018/degas-daidalus/SimulinkInterface';
@@ -25,10 +23,6 @@ clear classes;
 clear mex;
 rehash toolboxcache;
 
-% Re-assign after reset to avoid rare workspace-clear side effects
-pathAcas  = '/home/flynn/projects/matlab2018/degas-acas/SimulinkInterface';
-pathDaid  = '/home/flynn/projects/matlab2018/degas-daidalus/SimulinkInterface';
-pathPilot = '/home/flynn/projects/matlab2018/degas-pilotmodel';
 
 if ~exist('daaBackend','var') || isempty(daaBackend)
     daaBackend = 'daidalus';
@@ -77,16 +71,16 @@ s.uasPilot.noBufferMode = 1;
 s.uasPilot.deterministicMode = 1;
 
 % Setup the file to read the encounters from
-s.encounterFile = 'unitTestEncounters.mat';
+s.encounterFile = '/home/flynn/projects/matlab2018/em-pairing-uncor-importancesampling/Outputs/NMAC100_batches_20260413_153521/batch_001/scriptedEncounters.mat';
 
-if ~exist('encNum','var') || isempty(encNum)
-    encNum = 8;
-end
+encNum = 90;
+
 
 % Setup the encounter
 s.setupEncounter(encNum);
 
 % Run simulation
+warning('off','all')
 s.runSimulink(encNum);
 
 % Plot trajectories

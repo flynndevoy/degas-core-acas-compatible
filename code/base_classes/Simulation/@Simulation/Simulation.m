@@ -12,9 +12,9 @@ classdef Simulation < BasicSimulation
 % buses of all involved craft are sent to.
     
     properties(SetAccess=private)
-        commonMetrics @ CommonMetrics % Collects common metrics from the simulation
-        analysis @ SimulationAnalysis % Convenience methods for analyzing encounters
-        warnings @ EncounterWarningCheck % Checks for common issues with the encounter     
+        commonMetrics % Collects common metrics from the simulation
+        analysis % Convenience methods for analyzing encounters
+        warnings % Checks for common issues with the encounter     
     end    
     methods
         function obj = Simulation( model_name )

@@ -29,37 +29,37 @@ classdef DAAEncounterClass < Simulation
                            'sim_sampleTime', 'eventFileNames'};        
         
         % Nominal Events
-        ac1NominalEvents @ EncounterModelEvents % Aircraft 1
-        ac2NominalEvents @ EncounterModelEvents % Aircraft 2
+        ac1NominalEvents % Aircraft 1
+        ac2NominalEvents % Aircraft 2
 
         % Aircraft Dynamics
-        ac1Dynamics @ BasicAircraftDynamics % Aircraft 1
-        ac2Dynamics @ BasicAircraftDynamics % Aircraft 2
+        ac1Dynamics % Aircraft 1
+        ac2Dynamics % Aircraft 2
         
         % Control flow of Simulation
-        stopConditions @ StopConditions       
+        stopConditions       
         
         % Pilot model
-        uasPilot @ HeuristicOperatorModelR6
+        uasPilot
         
         % DAA System model
-        daaLogic @ DaidalusV201
+        daaLogic
         
         % Additional blocks that process the alert signal coming out of
         % DAIDALUS
-        MofN @ MofNFilter
-        Hyst @ HysteresisFilter
+        MofN
+        Hyst
 
         % Well clear metrics calculation
-        wellClearMetricsParams @ WellClearMetrics                         
+        wellClearMetricsParams
         
         % Sensor models
-        ac1OwnSense @ PerfectSurveillance % Sensor on ownship to discern own states
-        ac1IntSense @ PerfectSurveillance % Sensor on ownship to track intruder 
+        ac1OwnSense % Sensor on ownship to discern own states
+        ac1IntSense% Sensor on ownship to track intruder 
         
         % Transponder models, used to calculate pNMAC
-        ac1Transponder @ Transponder
-        ac2Transponder @ Transponder
+        ac1Transponder
+        ac2Transponder
         
         % Pre and Post processing properties
         encounterFile = ''
@@ -68,9 +68,17 @@ classdef DAAEncounterClass < Simulation
         
     end
     methods        
-        function this = DAAEncounterClass() % Constructor
+        function this = DAAEncounterClass(varargin) % Constructor
             this = this@Simulation('DAAEncounter');
-                      
+
+            backend = '';
+            if ~isempty(varargin)
+                p = inputParser;
+                addParameter(p, 'backend', '', @(x) ischar(x) || isstring(x));
+                parse(p, varargin{:});
+                backend = lower(strtrim(char(p.Results.backend)));
+            end
+
             % Nominal Event properties
             this.ac1NominalEvents = EncounterModelEvents();
             this.ac2NominalEvents = EncounterModelEvents();
@@ -86,8 +94,8 @@ classdef DAAEncounterClass < Simulation
             this.uasPilot = HeuristicOperatorModelR6('uasPilot_');
             avoid_maneuver_bus_definition();
 
-            % DAIDALUS Properties
-            this.daaLogic = DaidalusV201('daa_');
+            % DAA logic properties
+            this.daaLogic = DAAEncounterClass.selectDaaLogic('daa_', backend);
             
             % Additional DAIDALUS Alert processing blocks
             this.MofN = MofNFilter('ac1AlertMofN_');
@@ -336,6 +344,37 @@ classdef DAAEncounterClass < Simulation
             end
           
         end % method
-      
+
+    end
+
+    methods (Static, Access = private)
+        function logicObj = selectDaaLogic(tunableParameterPrefix, backend)
+            if nargin < 2
+                backend = '';
+            end
+
+            switch lower(strtrim(backend))
+                case 'daidalus'
+                    if exist('DaidalusV201','class') ~= 8
+                        error('Requested DAIDALUS backend, but DaidalusV201 class is unavailable on path.');
+                    end
+                    logicObj = DaidalusV201(tunableParameterPrefix);
+
+                case 'acas'
+                    if exist('AcasV1','class') ~= 8
+                        error('Requested ACAS backend, but AcasV1 class is unavailable on path.');
+                    end
+                    logicObj = AcasV1(tunableParameterPrefix);
+
+                otherwise
+                    if exist('DaidalusV201','class') == 8
+                        logicObj = DaidalusV201(tunableParameterPrefix);
+                    elseif exist('AcasV1','class') == 8
+                        logicObj = AcasV1(tunableParameterPrefix);
+                    else
+                        error('No supported DAA logic class found on path (expected DaidalusV201 or AcasV1).');
+                    end
+            end
+        end
     end
 end

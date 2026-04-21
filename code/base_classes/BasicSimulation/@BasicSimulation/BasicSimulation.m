@@ -104,7 +104,7 @@ classdef BasicSimulation < Block
         end
     end
     properties(SetAccess=private,Hidden)
-        metricBlocks@MetricBlock; % All the MetricBlocks that have registered to provide metrics at end of simulation
+        metricBlocks; % All the MetricBlocks that have registered to provide metrics at end of simulation
     end
     methods
         function this = registerMetricBlock( this, mblock )

@@ -1,4 +1,4 @@
-%% 
+﻿%% 
 % Startup script
 % Copyright 2008 - 2020, MIT Lincoln Laboratory
 %
@@ -21,11 +21,61 @@ if ~strcmp(matlabVer.Release,'(R2018b)')
     warning( [ 'DEGAS officially supports MATLAB R2018b.  You are using ' matlabVer.Release ] );
 end
 
-% Adding additional paths
-addThesePaths = {...
-    ['..' filesep '..' filesep 'degas-daidalus' filesep 'SimulinkInterface'];...
-    ['..' filesep '..' filesep 'degas-pilotmodel']...
+pathDaidalus = '/home/flynn/projects/matlab2018/degas-daidalus/SimulinkInterface';
+pathAcas     = '/home/flynn/projects/matlab2018/degas-acas/SimulinkInterface';
+pathPilot    = '/home/flynn/projects/matlab2018/degas-pilotmodel';
+
+% Remove both backend paths first (prevents duplicate/collision issues)
+if exist(pathDaidalus,'dir')
+    rmPathList = genpath(pathDaidalus);
+    if ~isempty(rmPathList)
+        curPathEntries = strsplit(path, pathsep);
+        rmEntries = strsplit(rmPathList, pathsep);
+        rmEntries = rmEntries(~cellfun('isempty', rmEntries));
+        if any(ismember(rmEntries, curPathEntries))
+            rmpath(rmPathList);
+        end
+    end
+end
+if exist(pathAcas,'dir')
+    rmPathList = genpath(pathAcas);
+    if ~isempty(rmPathList)
+        curPathEntries = strsplit(path, pathsep);
+        rmEntries = strsplit(rmPathList, pathsep);
+        rmEntries = rmEntries(~cellfun('isempty', rmEntries));
+        if any(ismember(rmEntries, curPathEntries))
+            rmpath(rmPathList);
+        end
+    end
+end
+
+if ~exist('daaBackend','var') || isempty(daaBackend)
+    daaBackend = 'daidalus';
+end
+
+if strcmpi(daaBackend,'acas')
+    addThesePaths = {...
+        pathAcas;...
+        pathPilot...
     };
+
+    % Optional convenience: set default ACAS policy if not already set.
+    if isempty(getenv('DEGAS_ACAS_POLICY_CSV'))
+        defaultAcasPolicy = '/home/flynn/projects/working_model/horizontal_logic_compact/data/policy/acas_offline_policy_table.csv';
+        if exist(defaultAcasPolicy,'file') == 2
+            setenv('DEGAS_ACAS_POLICY_CSV', defaultAcasPolicy);
+        end
+    end
+
+elseif strcmpi(daaBackend,'daidalus')
+    addThesePaths = {...
+        pathDaidalus;...
+        pathPilot...
+    };
+
+else
+    error('Invalid daaBackend value: %s. Use ''daidalus'' or ''acas''.', daaBackend);
+end
 
 if ~isempty(addThesePaths)
     disp('Adding additional paths...');
@@ -71,6 +121,6 @@ clear curDir dir;
 if( ~isempty( err ) )
     rethrow(err);
 end
-clear err ii addThesePaths matlabVer temp;
+clear err ii addThesePaths matlabVer temp daaBackend pathDaidalus pathAcas pathPilot defaultAcasPolicy rmPathList curPathEntries rmEntries;
 % Everything is done
 disp('Done!');
